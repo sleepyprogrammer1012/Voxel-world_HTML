@@ -37,6 +37,27 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/simplex-noise/2.4.0/simplex-noise.min.js"></script>
 
     <script>
+
+        // Multiplayer connection
+        const WS_URL = (location.hostname === "localhost")
+          ? "ws://localhost:8080"
+          : "wss://YOUR-RENDER-SERVICE-NAME.onrender.com";
+
+        const ws = new WebSocket(WS_URL);
+
+        ws.onopen = () => console.log("✅ Connected to multiplayer server");
+        ws.onmessage = (event) => {
+          const msg = JSON.parse(event.data);
+          console.log("📩 Multiplayer event:", msg);
+          // TODO: handle updates (like other players moving, placing blocks, etc.)
+        };
+        ws.onclose = () => console.log("❌ Disconnected from multiplayer server");
+
+        // Example function: send block placement
+        function sendBlockUpdate(type, pos) {
+          ws.send(JSON.stringify({ type, pos }));
+        }
+
         // --- Basic Setup ---
         const scene = new THREE.Scene();
         scene.fog = new THREE.Fog(0x7ab5ff, 32, 128);
@@ -503,3 +524,4 @@
     </script>
 </body>
 </html>
+
