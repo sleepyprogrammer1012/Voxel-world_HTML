@@ -13,7 +13,7 @@ Welcome to the tiny blocky kingdom! This is a minimalist Minecraft-style voxel e
   Run locally:
 
     python -m http.server 8000
-  then open http://localhost:8000/ (or /Minecraft-attempt.html)
+  then open http://localhost:8000/ (or /index.html)
 
 
 Make sure minecraft_atlas.png is in the same folder as your HTML (or update atlasPath in the code).
