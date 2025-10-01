@@ -3,7 +3,7 @@ const WebSocket = require('ws');
 // Render sets PORT automatically
 const PORT = process.env.PORT || 8080;
 const wss = new WebSocket.Server({ port: PORT });
-
+app.listen(PORT, () => {
 console.log(`✅ WebSocket server running on port ${PORT}`);
 
 wss.on('connection', (ws) => {
