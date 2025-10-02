@@ -4,20 +4,20 @@
          // ? "ws://localhost:8080"
          // : "wss://usr-ID#.onrender.com";
 
-        const ws = new WebSocket(WS_URL);
+        //const ws = new WebSocket(WS_URL);
 
-        ws.onopen = () => console.log("✅ Connected to multiplayer server");
-        ws.onmessage = (event) => {
-          const msg = JSON.parse(event.data);
-          console.log("📩 Multiplayer event:", msg);
+        //ws.onopen = () => console.log("✅ Connected to multiplayer server");
+       // ws.onmessage = (event) => {
+         // const msg = JSON.parse(event.data);
+         // console.log("📩 Multiplayer event:", msg);
           // TODO: handle updates (like other players moving, placing blocks, etc.)
-        };
-        ws.onclose = () => console.log("❌ Disconnected from multiplayer server");
+       // };
+       // ws.onclose = () => console.log("❌ Disconnected from multiplayer server");
 
         // Example function: send block placement
-        function sendBlockUpdate(type, pos) {
-          ws.send(JSON.stringify({ type, pos }));
-        }
+        //function sendBlockUpdate(type, pos) {
+          //ws.send(JSON.stringify({ type, pos }));
+        //}
 
         // --- Basic Setup ---
         const scene = new THREE.Scene();
