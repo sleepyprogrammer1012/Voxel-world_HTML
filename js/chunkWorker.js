@@ -1,8 +1,7 @@
 // chunkWorker.js
 
 // Import noise if needed (workers can use importScripts)
-importScripts("https://cdnjs.cloudflare.com/ajax/libs/simplex-noise/2.4.0/simplex-noise.min.js");
-
+importScripts('./simplex-noise.js');
 const simplex = new SimplexNoise();
 
 // Utility
