@@ -123,6 +123,15 @@
         const simplex = new SimplexNoise();
         const faces = [];
 
+        faces.push(
+          { uvRow: 'side', dir: [ -1, 0, 0 ], corners: [ { pos: [0, 1, 0], uv: [0, 1] }, { pos: [0, 0, 0], uv: [0, 0] }, { pos: [0, 1, 1], uv: [1, 1] }, { pos: [0, 0, 1], uv: [1, 0] } ] },
+          { uvRow: 'side', dir: [ 1, 0, 0 ], corners: [ { pos: [1, 1, 1], uv: [0, 1] }, { pos: [1, 0, 1], uv: [0, 0] }, { pos: [1, 1, 0], uv: [1, 1] }, { pos: [1, 0, 0], uv: [1, 0] } ] },
+          { uvRow: 'bottom', dir: [ 0, -1, 0 ], corners: [ { pos: [1, 0, 1], uv: [1, 1] }, { pos: [0, 0, 1], uv: [0, 1] }, { pos: [1, 0, 0], uv: [1, 0] }, { pos: [0, 0, 0], uv: [0, 0] } ] },
+          { uvRow: 'top', dir: [ 0, 1, 0 ], corners: [ { pos: [0, 1, 1], uv: [0, 1] }, { pos: [1, 1, 1], uv: [1, 1] }, { pos: [0, 1, 0], uv: [0, 0] }, { pos: [1, 1, 0], uv: [1, 0] } ] },
+          { uvRow: 'side', dir: [ 0, 0, -1 ], corners: [ { pos: [1, 1, 0], uv: [0, 1] }, { pos: [1, 0, 0], uv: [0, 0] }, { pos: [0, 1, 0], uv: [1, 1] }, { pos: [0, 0, 0], uv: [1, 0] } ] },
+          { uvRow: 'side', dir: [ 0, 0, 1 ], corners: [ { pos: [0, 1, 1], uv: [0, 1] }, { pos: [0, 0, 1], uv: [0, 0] }, { pos: [1, 1, 1], uv: [1, 1] }, { pos: [1, 0, 1], uv: [1, 0] } ] }
+        );
+
         function getBlockKey(x,y,z){ return `${x},${y},${z}`; }
         function getChunkKey(x,z){ return `${x},${z}`; }
 
@@ -184,7 +193,11 @@
             }
           }
         }
-generateChunkMesh(0, 0);
+for (let cx = -2; cx <= 2; cx++) {
+  for (let cz = -2; cz <= 2; cz++) {
+    generateChunkMesh(cx, cz);
+  }
+}
 
         // Create worker
         const chunkWorker = new Worker("./js/chunkWorker.js");
