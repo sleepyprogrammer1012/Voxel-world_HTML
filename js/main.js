@@ -1,5 +1,5 @@
 
-         //Multiplayer connection
+         // Multiplayer connection
         const WS_URL = (location.hostname === "localhost")
           ? "ws://localhost:8080"
           : "wss://usr-d3eogac9c44c73c4i4vg.onrender.com";
@@ -10,11 +10,11 @@
         ws.onmessage = (event) => {
           const msg = JSON.parse(event.data);
           console.log("📩 Multiplayer event:", msg);
-           TODO: handle updates (like other players moving, placing blocks, etc.)
+  // TODO: handle updates (like other players moving, placing blocks, etc.)
         };
         ws.onclose = () => console.log("❌ Disconnected from multiplayer server");
 
-         Example function: send block placement
+// Example function: send block placement
         function sendBlockUpdate(type, pos) {
           ws.send(JSON.stringify({ type, pos }));
         }
