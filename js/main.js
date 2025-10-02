@@ -324,28 +324,41 @@
         }
 
         function updateChunks() {
-            const playerChunkX = Math.floor(camera.position.x / chunkSize);
-            const playerChunkZ = Math.floor(camera.position.z / chunkSize);
-            for (let x = -renderDistance; x <= renderDistance; x++) {
-                for (let z = -renderDistance; z <= renderDistance; z++) {
-                    const cx = playerChunkX + x;
-                    const cz = playerChunkZ + z;
-                    const key = getChunkKey(cx, cz);
-                    if (!chunks.has(key)) {
-                        requestChunk(cx, cz);
-                    }
-                }
+          const playerChunkX = Math.floor(camera.position.x / chunkSize);
+          const playerChunkZ = Math.floor(camera.position.z / chunkSize);
+
+          for (let x = -renderDistance; x <= renderDistance; x++) {
+            for (let z = -renderDistance; z <= renderDistance; z++) {
+              const cx = playerChunkX + x;
+              const cz = playerChunkZ + z;
+              const key = getChunkKey(cx, cz);
+
+              if (!chunks.has(key)) {
+                // Instead of generating directly, ask the worker
+                requestChunk(cx, cz);
+                // Mark this chunk as "reserved" so we don’t spam requests
+                chunks.set(key, {});
+              }
             }
-            chunks.forEach((data, key) => {
-                const [cx, cz] = key.split(',').map(Number);
-                const dx = Math.abs(cx - playerChunkX);
-                const dz = Math.abs(cz - playerChunkZ);
-                if (dx > renderDistance + 1 || dz > renderDistance + 1) {
-                    if (data.solidMesh) { scene.remove(data.solidMesh); data.solidMesh.geometry.dispose(); }
-                    if (data.transparentMesh) { scene.remove(data.transparentMesh); data.transparentMesh.geometry.dispose(); }
-                    chunks.delete(key);
-                }
-            });
+          }
+
+          // Clean up chunks that are too far away
+          chunks.forEach((data, key) => {
+            const [cx, cz] = key.split(',').map(Number);
+            const dx = Math.abs(cx - playerChunkX);
+            const dz = Math.abs(cz - playerChunkZ);
+            if (dx > renderDistance + 1 || dz > renderDistance + 1) {
+              if (data.solidMesh) {
+                scene.remove(data.solidMesh);
+                data.solidMesh.geometry.dispose();
+              }
+              if (data.transparentMesh) {
+                scene.remove(data.transparentMesh);
+                data.transparentMesh.geometry.dispose();
+              }
+              chunks.delete(key);
+            }
+          });
         }
 
         // --- Initialization & Full Implementations ---
