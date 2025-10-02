@@ -176,6 +176,34 @@
             if (chunk.transparent.positions.length > 0) chunks.set(key, { ...chunks.get(key), transparentMesh: createMesh(chunk.transparent, transparentAtlasMaterial) });
         }
 
+        // Create worker
+        const chunkWorker = new Worker("./js/chunkWorker.js");
+
+        // Listen for results
+        chunkWorker.onmessage = (e) => {
+          const { type, chunkX, chunkZ, blocks } = e.data;
+          if (type === "chunkGenerated") {
+            // Merge blocks into world map
+            Object.entries(blocks).forEach(([key, value]) => {
+              world.set(key, value);
+            });
+
+            // Build mesh on main thread (WebGL must stay here)
+            generateChunkMesh(chunkX, chunkZ);
+          }
+        };
+
+        // Request a chunk
+        function requestChunk(chunkX, chunkZ) {
+          chunkWorker.postMessage({
+            type: "generateChunk",
+            chunkX,
+            chunkZ,
+            chunkSize,
+            worldHeight
+          });
+        }
+
         // --- Block Interaction ---
         function getBlockAtPointer() {
             raycaster.setFromCamera({ x: 0, y: 0 }, camera);
@@ -304,8 +332,7 @@
                     const cz = playerChunkZ + z;
                     const key = getChunkKey(cx, cz);
                     if (!chunks.has(key)) {
-                        generateChunk(cx, cz);
-                        generateChunkMesh(cx, cz);
+                        requestChunk(cx, cz);
                     }
                 }
             }
