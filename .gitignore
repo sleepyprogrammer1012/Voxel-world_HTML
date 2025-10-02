@@ -23,3 +23,16 @@ Thumbs.db
 
 # Optional: ignore compiled assets if you're using a bundler
 *.bundle.js
+
+# Node modules
+node_modules/
+
+# Logs
+*.log
+
+# Environment variables
+.env
+
+# OS-specific
+.DS_Store
+Thumbs.db
