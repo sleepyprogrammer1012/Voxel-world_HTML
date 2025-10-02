@@ -334,8 +334,9 @@
               const key = getChunkKey(cx, cz);
 
               if (!chunks.has(key)) {
-                // Instead of generating directly, ask the worker
+                // ✅ Instead of generateChunk + generateChunkMesh, request it from the worker
                 requestChunk(cx, cz);
+
                 // Mark this chunk as "reserved" so we don’t spam requests
                 chunks.set(key, {});
               }
