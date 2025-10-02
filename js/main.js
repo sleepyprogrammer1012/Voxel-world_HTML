@@ -73,7 +73,7 @@
         // --- Texture & Block Setup ---
         const textureLoader = new THREE.TextureLoader();
         const atlasTexture = textureLoader.load(
-            "minecraft_atlas.png",
+            "assets/minecraft_atlas.png",
             () => console.log("Atlas loaded successfully"),
             undefined,
             (err) => console.error("Atlas failed to load:", err)
