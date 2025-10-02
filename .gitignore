@@ -1,0 +1,25 @@
+# Node modules (if using npm or bundlers later)
+node_modules/
+
+# Build output
+dist/
+build/
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# IDE/editor configs
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Environment variables
+.env
+
+# Optional: ignore compiled assets if you're using a bundler
+*.bundle.js
