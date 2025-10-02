@@ -73,7 +73,7 @@
         // --- Texture & Block Setup ---
         const textureLoader = new THREE.TextureLoader();
         const atlasTexture = textureLoader.load(
-            "assets/minecraft_atlas.png",
+            "./assets/minecraft_atlas.png",
             () => console.log("Atlas loaded successfully"),
             undefined,
             (err) => console.error("Atlas failed to load:", err)
@@ -357,7 +357,7 @@
                 option.dataset.type = type;
                 const uvData = blockTypes[type].uv.all || blockTypes[type].uv.side;
                 option.style.backgroundPosition = `-${uvData[0] * 100}% -${uvData[1] * 100}%`;
-                option.style.backgroundImage = 'url("assets/minecraft_atlas.png")';
+                option.style.backgroundImage = 'url("./assets/minecraft_atlas.png")';
                 if (type === selectedBlockType) option.classList.add('selected');
                 option.addEventListener('click', (e) => {
                     e.stopPropagation();
