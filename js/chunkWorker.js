@@ -2,7 +2,9 @@
 
 // Import noise if needed (workers can use importScripts)
 importScripts('./simplex-noise.js');
-const simplex = new SimplexNoise();
+const simplex = new NOISE.Simplex();
+simplex.init();
+simplex.noiseDetail(4, 0.5); // 4 octaves, persistence 0.5
 
 // Utility
 function getBlockKey(x, y, z) {
@@ -17,19 +19,21 @@ function generateChunkData(chunkX, chunkZ, chunkSize, worldHeight) {
       const worldX = chunkX * chunkSize + x;
       const worldZ = chunkZ * chunkSize + z;
 
-      // Simple heightmap
-      const height = Math.floor(simplex.noise2D(worldX * 0.05, worldZ * 0.05) * 10) + 64;
+     for (let y = 0; y < worldHeight; y++) {
+       const key = `${worldX},${y},${worldZ}`;
 
-      for (let y = 0; y < height; y++) {
-        let type = "stone";
-        if (y === height - 1) type = "grass";
-        else if (y > height - 5) type = "dirt";
-        blocks[getBlockKey(worldX, y, worldZ)] = type;
+       if (y > height) {
+         if (y <= 62) blocks[key] = "glass"; // placeholder for water
+       } else if (y === height) {
+         blocks[key] = (y < 63) ? "sand" : "grass";
+       } else if (y > height - 5) {
+         blocks[key] = "dirt";
+       } else if (y === 0) {
+         blocks[key] = "bedrock";
+       } else {
+         blocks[key] = "stone";
+       }
       }
-    }
-  }
-  return blocks;
-}
 
 // Worker message handler
 self.onmessage = (e) => {
