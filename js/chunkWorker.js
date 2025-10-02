@@ -14,26 +14,38 @@ function getBlockKey(x, y, z) {
 // Generate chunk voxel data
 function generateChunkData(chunkX, chunkZ, chunkSize, worldHeight) {
   const blocks = {};
+  const seaLevel = 62;
+
   for (let x = 0; x < chunkSize; x++) {
     for (let z = 0; z < chunkSize; z++) {
       const worldX = chunkX * chunkSize + x;
       const worldZ = chunkZ * chunkSize + z;
 
-     for (let y = 0; y < worldHeight; y++) {
-       const key = `${worldX},${y},${worldZ}`;
+      // ✅ Calculate terrain height for this column
+      const scale = 0.05;
+      const height = Math.floor(simplex.noise(worldX * scale, worldZ * scale) * 20) + 64;
 
-       if (y > height) {
-         if (y <= 62) blocks[key] = "glass"; // placeholder for water
-       } else if (y === height) {
-         blocks[key] = (y < 63) ? "sand" : "grass";
-       } else if (y > height - 5) {
-         blocks[key] = "dirt";
-       } else if (y === 0) {
-         blocks[key] = "bedrock";
-       } else {
-         blocks[key] = "stone";
-       }
+      // Now fill blocks in this column
+      for (let y = 0; y < worldHeight; y++) {
+        const key = `${worldX},${y},${worldZ}`;
+
+        if (y > height) {
+          if (y <= seaLevel) blocks[key] = "glass"; // placeholder for water
+        } else if (y === height) {
+          blocks[key] = (y < seaLevel) ? "sand" : "grass";
+        } else if (y >= height - 4) {
+          blocks[key] = "dirt";
+        } else if (y === 0) {
+          blocks[key] = "bedrock";
+        } else {
+          blocks[key] = "stone";
+        }
       }
+    }
+  }
+
+  return blocks;
+}
 
 // Worker message handler
 self.onmessage = (e) => {
