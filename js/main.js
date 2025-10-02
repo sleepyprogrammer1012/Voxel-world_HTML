@@ -338,7 +338,7 @@
                 requestChunk(cx, cz);
 
                 // Mark this chunk as "reserved" so we don’t spam requests
-                chunks.set(key, {});
+                //chunks.set(key, {});
               }
             }
           }
