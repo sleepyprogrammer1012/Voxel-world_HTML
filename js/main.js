@@ -483,5 +483,4 @@
         // Start
         updateChunks();
         animate();
-
 </script>
