@@ -1,4 +1,3 @@
-<script>
 
         // Multiplayer connection
         const WS_URL = (location.hostname === "localhost")
@@ -483,4 +482,4 @@
         // Start
         updateChunks();
         animate();
-</script>
+
