@@ -2,7 +2,7 @@
         // Multiplayer connection
         const WS_URL = (location.hostname === "localhost")
           ? "ws://localhost:8080"
-          : "wss://usr-d3eogac9c44c73c4i4vg.onrender.com";
+          : "wss://usr-ID#.onrender.com";
 
         const ws = new WebSocket(WS_URL);
 
