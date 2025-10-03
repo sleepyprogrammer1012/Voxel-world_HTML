@@ -185,19 +185,6 @@
             if (chunk.transparent.positions.length > 0) chunks.set(key, { ...chunks.get(key), transparentMesh: createMesh(chunk.transparent, transparentAtlasMaterial) });
         }
 
-        // TEMP: fill a flat dirt floor at y=60
-        for (let x = -32; x < 32; x++) {
-          for (let z = -32; z < 32; z++) {
-            for (let y = 0; y < 61; y++) {
-              world.set(`${x},${y},${z}`, y === 60 ? "grass" : "dirt");
-            }
-          }
-        }
-for (let cx = -2; cx <= 2; cx++) {
-  for (let cz = -2; cz <= 2; cz++) {
-    generateChunkMesh(cx, cz);
-  }
-}
 
         // Create worker
         const chunkWorker = new Worker("./js/chunkWorker.js");
