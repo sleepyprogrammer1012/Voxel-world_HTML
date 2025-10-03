@@ -23,8 +23,8 @@ function generateChunkData(chunkX, chunkZ, chunkSize, worldHeight) {
 
       // ✅ Calculate terrain height for this column
       const scale = 0.05;
-      const n = simplex.noise2D(worldX * scale, worldZ * scale); // returns [-1,1]
-      const height = Math.floor((n * 0.5 + 0.5) * 20) + 64;      // normalize to [0,1], scale, offset
+      const n = simplex.noise(worldX * scale, worldZ * scale); // returns [0,1] in your library
+      const height = Math.floor(n * 20) + 64;                  // no extra normalization needed
 
       // Fill blocks in this column
       for (let y = 0; y < worldHeight; y++) {
