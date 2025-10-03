@@ -1,10 +1,10 @@
 // chunkWorker.js
 
-// Import noise if needed (workers can use importScripts)
+// Import noise library into the worker
 importScripts('./simplex-noise.js');
-const simplex = new NOISE.Simplex();
-simplex.init();
-simplex.noiseDetail(4, 0.5); // 4 octaves, persistence 0.5
+
+// Create one noise generator instance
+const simplex = new SimplexNoise();
 
 // Utility
 function getBlockKey(x, y, z) {
@@ -23,12 +23,12 @@ function generateChunkData(chunkX, chunkZ, chunkSize, worldHeight) {
 
       // ✅ Calculate terrain height for this column
       const scale = 0.05;
-      const n = simplex.noise2D(worldX * scale, worldZ * scale);
-      const height = Math.floor((n * 0.5 + 0.5) * 20) + 64;
+      const n = simplex.noise2D(worldX * scale, worldZ * scale); // returns [-1,1]
+      const height = Math.floor((n * 0.5 + 0.5) * 20) + 64;      // normalize to [0,1], scale, offset
 
-      // Now fill blocks in this column
+      // Fill blocks in this column
       for (let y = 0; y < worldHeight; y++) {
-        const key = `${worldX},${y},${worldZ}`;
+        const key = getBlockKey(worldX, y, worldZ);
 
         if (y > height) {
           if (y <= seaLevel) blocks[key] = "glass"; // placeholder for water
