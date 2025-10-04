@@ -3,9 +3,8 @@
 // Import noise library into the worker
 importScripts('./simplex-noise.js');
 
-// Create one noise generator instance
-// If this throws "SimplexNoise is not defined", switch to: const simplex = new NOISE.Simplex();
-const simplex = new SimplexNoise();
+// Create one noise generator instance from your library
+const simplex = new NOISE.Simplex();
 simplex.init();
 simplex.noiseDetail(4, 0.5); // optional: octaves + persistence
 
