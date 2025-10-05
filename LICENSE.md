@@ -1,4 +1,4 @@
-# License
+# License: MIT
 
 ## Code
 This project’s source code is licensed under the MIT License:
