@@ -1,6 +1,6 @@
 # License: MIT
 
-## Code
+## Code 
 This project’s source code is licensed under the MIT License:
 
 Copyright (c) 2025 sleepyprogrammer1012
