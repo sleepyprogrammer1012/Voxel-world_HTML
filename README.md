@@ -10,7 +10,7 @@ Welcome to the tiny blocky kingdom! This is a minimalist Minecraft-style voxel e
 
 ## 🎮 Quick demo / TL;DR
 
-  Run locally:
+  Run locally (after downloading and unzipping the repo contents):
 
     python -m http.server 8000
   then open http://localhost:8000/ (or /index.html)
