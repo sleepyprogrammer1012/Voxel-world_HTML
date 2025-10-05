@@ -6,7 +6,7 @@ I only started coding in 2024, and before this I tinkered with things like a lit
 So why jump straight into building a voxel sandbox game?  
 Because one day I asked myself: *“Why not? If RuneScape could run in a browser, why can’t I build something wild on a GitHub Page?”*  
 
-That single thought flipped the switch. Suddenly, what felt impossible — hosting a game on a static page — became the challenge I wanted to chase. I don’t have servers, I don’t have funding, but I do have curiosity, stubbornness, and the belief that games should be as open and creative as the people who play them.
+That single thought flipped the switch. Suddenly, what felt impossible, hosting a game on a static page, became the challenge I wanted to chase. I don’t have servers, I don’t have funding, but I do have curiosity, stubbornness, and the belief that games should be as open and creative as the people who play them.
 
 This repo is me learning in public, building step by step, and sharing the process.  
 It might be rough around the edges, but it’s also proof that you don’t need decades of experience or a big studio to start shaping the next evolution of gaming.  
