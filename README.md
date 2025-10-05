@@ -75,3 +75,14 @@ Want prettier blocks? Replace minecraft_atlas.png with higher-fidelity tiles (ke
 Built with love using Three.js and simplex-noise.
 
 Atlas generated programmatically (you can replace it with your own art).
+
+---
+
+## 🤝 Contributing
+
+Contributions are what make this project grow and improve!  
+Whether it’s fixing a bug, adding new features, designing textures, or creating blueprints — all help is welcome.
+
+Please read the [CONTRIBUTING.md](./CONTRIBUTING.md) for details on our code of conduct, the process for submitting pull requests, and the rules for community content.
+
+Together we can build something amazing 🚀
