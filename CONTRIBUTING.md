@@ -38,6 +38,15 @@ This project is meant to be a fun, creative sandbox, and contributions from the 
 
 ---
 
+# Ownership and Permissions
+
+**By submitting a contribution, you confirm that:**
+	•	You are the original creator or have full rights to contribute the work.
+	•	You grant the project owner (Joshua Holmes - sleepyprogranmer1012) a perpetual, worldwide, royalty-free license to use, modify, and distribute your contribution as part of this project.
+	•	You retain ownership of your work — you’re simply giving permission for it to be included in the game and shared publicly
+
+   ---
+
 ## Licensing
 - **Code contributions** are licensed under the MIT License (see LICENSE.md).
 - **Assets (textures, models, audio, branding)** remain the property of their creators.  
