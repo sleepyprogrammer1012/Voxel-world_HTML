@@ -1,5 +1,5 @@
 
-         // Multiplayer connection
+         // Multiplayer connection 
         const WS_URL = (location.hostname === "localhost")
           ? "ws://localhost:8080"
           : "wss://usr-IDnumber.onrender.com";
