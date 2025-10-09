@@ -44,7 +44,7 @@ function generateChunkData(chunkX, chunkZ, chunkSize, worldHeight) {
 
       // 🌲 Try to spawn a tree on grass blocks
       const treeNoise = simplex.noise(worldX * treeNoiseScale, worldZ * treeNoiseScale);
-      if (treeNoise > 0.75) { // lower threshold = more trees
+      if (treeNoise > 0.88 && Math.random() > 0.7) { // lower threshold = more trees
         const groundKey = getBlockKey(worldX, terrainHeight, worldZ);
         if (blocks[groundKey] === "grass") {
           const treeHeight = Math.floor(Math.random() * 3) + 4;
