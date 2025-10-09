@@ -98,6 +98,7 @@ self.onmessage = (e) => {
 
   if (type === "generateChunk") {
     const blocks = generateChunkData(chunkX, chunkZ, chunkSize, worldHeight);
+    console.log(`Chunk ${chunkX},${chunkZ} generated with ${Object.keys(blocks).length} blocks`);
     self.postMessage({ type: "chunkGenerated", chunkX, chunkZ, blocks });
   }
 };
