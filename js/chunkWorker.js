@@ -1,31 +1,30 @@
 // chunkWorker.js
 
-// Import noise library into the worker
 importScripts('./simplex-noise.js');
 
-// Create one noise generator instance from your library
+// Create one noise generator instance
 const simplex = new NOISE.Simplex();
 simplex.init();
-simplex.noiseDetail(4, 0.5); // optional: octaves + persistence
+simplex.noiseDetail(4, 0.5); // octaves + persistence
 
-// Utility
 function getBlockKey(x, y, z) {
   return `${x},${y},${z}`;
 }
 
-// Generate chunk voxel data
+// Terrain + Trees
 function generateChunkData(chunkX, chunkZ, chunkSize, worldHeight) {
   const blocks = {};
   const seaLevel = 62;
+  const terrainScale = 0.05;
+  const treeNoiseScale = 0.1;
 
+  // --- TERRAIN GENERATION ---
   for (let x = 0; x < chunkSize; x++) {
     for (let z = 0; z < chunkSize; z++) {
       const worldX = chunkX * chunkSize + x;
       const worldZ = chunkZ * chunkSize + z;
 
-      // ✅ Use the unified noise() function with 2 args
-      const scale = 0.05;
-      const n = simplex.noise(worldX * scale, worldZ * scale); // returns 0..1
+      const n = simplex.noise(worldX * terrainScale, worldZ * terrainScale);
       const height = Math.floor(n * 20) + 64;
 
       for (let y = 0; y < worldHeight; y++) {
@@ -46,21 +45,59 @@ function generateChunkData(chunkX, chunkZ, chunkSize, worldHeight) {
     }
   }
 
+  // --- TREE GENERATION ---
+  for (let x = 0; x < chunkSize; x++) {
+    for (let z = 0; z < chunkSize; z++) {
+      const worldX = chunkX * chunkSize + x;
+      const worldZ = chunkZ * chunkSize + z;
+
+      // Get surface height again
+      const n = simplex.noise(worldX * terrainScale, worldZ * terrainScale);
+      const height = Math.floor(n * 20) + 64;
+
+      // Check block type and tree noise
+      const belowKey = getBlockKey(worldX, height, worldZ);
+      const blockBelow = blocks[belowKey];
+      const treeNoise = simplex.noise(worldX * treeNoiseScale, worldZ * treeNoiseScale);
+
+      // Only spawn trees on grass with enough noise value
+      if (blockBelow === "grass" && treeNoise > 0.6) {
+        const treeHeight = Math.floor(Math.random() * 3) + 4;
+
+        // Trunk
+        for (let i = 1; i <= treeHeight; i++) {
+          blocks[getBlockKey(worldX, height + i, worldZ)] = "oak_log";
+        }
+
+        // Leaves
+        for (let tx = -2; tx <= 2; tx++) {
+          for (let ty = -2; ty <= 2; ty++) {
+            for (let tz = -2; tz <= 2; tz++) {
+              if (tx === 0 && tz === 0 && ty < 0) continue;
+              const radius = tx * tx + ty * ty + tz * tz;
+              if (radius <= 5) {
+                const lx = worldX + tx;
+                const ly = height + treeHeight - 2 + ty;
+                const lz = worldZ + tz;
+                const leafKey = getBlockKey(lx, ly, lz);
+                if (!blocks[leafKey]) blocks[leafKey] = "leaves";
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
   return blocks;
 }
 
-// Worker message handler
+// Worker handler
 self.onmessage = (e) => {
   const { type, chunkX, chunkZ, chunkSize, worldHeight } = e.data;
 
   if (type === "generateChunk") {
     const blocks = generateChunkData(chunkX, chunkZ, chunkSize, worldHeight);
-
-    self.postMessage({
-      type: "chunkGenerated",
-      chunkX,
-      chunkZ,
-      blocks
-    });
+    self.postMessage({ type: "chunkGenerated", chunkX, chunkZ, blocks });
   }
 };
