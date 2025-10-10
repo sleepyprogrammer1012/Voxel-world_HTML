@@ -19,9 +19,10 @@
           ws.send(JSON.stringify({ type, pos }));
         }
 
-        // --- Basic Setup ---
+      // === Basic Setup ===
         const scene = new THREE.Scene();
         scene.fog = new THREE.Fog(0x7ab5ff, 32, 128);
+
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
         const renderer = new THREE.WebGLRenderer({ antialias: false });
         renderer.setSize(window.innerWidth, window.innerHeight);
@@ -29,9 +30,10 @@
         renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         document.body.appendChild(renderer.domElement);
 
-        // --- Lighting & Day/Night Cycle ---
+        // === Lighting & Day/Night Cycle ===
         const ambientLight = new THREE.AmbientLight(0xcccccc, 0.8);
         scene.add(ambientLight);
+
         const directionalLight = new THREE.DirectionalLight(0xffffff, 0.6);
         directionalLight.position.set(100, 100, 50);
         directionalLight.castShadow = true;
@@ -44,50 +46,45 @@
         directionalLight.shadow.camera.top = 150;
         directionalLight.shadow.camera.bottom = -150;
         scene.add(directionalLight);
-        
+
         const sunGeometry = new THREE.SphereGeometry(20, 32, 32);
         const sunMaterial = new THREE.MeshLambertMaterial({ color: 0xffff00, emissive: 0xffff00 });
         const sun = new THREE.Mesh(sunGeometry, sunMaterial);
         scene.add(sun);
 
-        let timeOfDay = Math.PI / 4; 
+        let timeOfDay = Math.PI / 4;
         const dayDuration = 60 * 5; // 5 minutes
-        const skyColors = { day: new THREE.Color('#7ab5ff'), sunset: new THREE.Color('#ff8c00'), night: new THREE.Color('#000033') };
+        const skyColors = {
+          day: new THREE.Color('#7ab5ff'),
+          sunset: new THREE.Color('#ff8c00'),
+          night: new THREE.Color('#000033')
+        };
 
-        function waitForCenterChunk() {
-          const key = getChunkKey(0, 0);
-          if (chunks.has(key)) {
-            console.log("🌍 Center chunk loaded, spawning player");
-            spawnPlayer();
-          } else {
-            setTimeout(waitForCenterChunk, 200);
-          }
-        }
-        waitForCenterChunk();
+        // === World & Chunk Management ===
+        const world = new Map();
+        const chunks = new Map();
+        const chunkSize = 16, worldHeight = 256, waterLevel = 62, renderDistance = 6;
+        const simplex = new SimplexNoise();
 
+        const faces = [
+          { uvRow: 'side', dir: [-1, 0, 0], corners: [{ pos: [0, 1, 0], uv: [0, 1] }, { pos: [0, 0, 0], uv: [0, 0] }, { pos: [0, 1, 1], uv: [1, 1] }, { pos: [0, 0, 1], uv: [1, 0] }] },
+          { uvRow: 'side', dir: [1, 0, 0], corners: [{ pos: [1, 1, 1], uv: [0, 1] }, { pos: [1, 0, 1], uv: [0, 0] }, { pos: [1, 1, 0], uv: [1, 1] }, { pos: [1, 0, 0], uv: [1, 0] }] },
+          { uvRow: 'bottom', dir: [0, -1, 0], corners: [{ pos: [1, 0, 1], uv: [1, 1] }, { pos: [0, 0, 1], uv: [0, 1] }, { pos: [1, 0, 0], uv: [1, 0] }, { pos: [0, 0, 0], uv: [0, 0] }] },
+          { uvRow: 'top', dir: [0, 1, 0], corners: [{ pos: [0, 1, 1], uv: [0, 1] }, { pos: [1, 1, 1], uv: [1, 1] }, { pos: [0, 1, 0], uv: [0, 0] }, { pos: [1, 1, 0], uv: [1, 0] }] },
+          { uvRow: 'side', dir: [0, 0, -1], corners: [{ pos: [1, 1, 0], uv: [0, 1] }, { pos: [1, 0, 0], uv: [0, 0] }, { pos: [0, 1, 0], uv: [1, 1] }, { pos: [0, 0, 0], uv: [1, 0] }] },
+          { uvRow: 'side', dir: [0, 0, 1], corners: [{ pos: [0, 1, 1], uv: [0, 1] }, { pos: [0, 0, 1], uv: [0, 0] }, { pos: [1, 1, 1], uv: [1, 1] }, { pos: [1, 0, 1], uv: [1, 0] }] }
+        ];
 
-        // --- Player Physics ---
-        const player = { height: 1.8, width: 0.5, speed: 5, jumpForce: 7, velocity: new THREE.Vector3(), onGround: false, boundingBox: new THREE.Box3() };
-        const gravity = -20;
-        camera.position.set(0, 80, 0);
+        function getBlockKey(x, y, z) { return `${x},${y},${z}`; }
+        function getChunkKey(x, z) { return `${x},${z}`; }
 
-        // --- Camera Controls ---
-        const controls = { forward: false, backward: false, left: false, right: false, pitch: 0, yaw: 0, euler: new THREE.Euler(0,0,0,'YXZ') };
-        function onMouseMove(event) { if (!isPointerLocked) return; controls.yaw -= event.movementX * 0.002; controls.pitch -= event.movementY * 0.002; controls.pitch = Math.max(-Math.PI/2, Math.min(Math.PI/2, controls.pitch)); }
-        let isPointerLocked = false;
-        document.body.addEventListener('click', () => document.body.requestPointerLock());
-        document.addEventListener('pointerlockchange', () => { isPointerLocked = document.pointerLockElement === document.body; });
-        // allow right-click for placing blocks
-        document.addEventListener('contextmenu', (e) => e.preventDefault());
-        document.addEventListener('mousemove', onMouseMove);
-
-        // --- Texture & Block Setup ---
+        // === Texture & Block Setup ===
         const textureLoader = new THREE.TextureLoader();
         const atlasTexture = textureLoader.load(
-            "./assets/minecraft_atlas.png",
-            () => console.log("Atlas loaded successfully"),
-            undefined,
-            (err) => console.error("Atlas failed to load:", err)
+          "./assets/minecraft_atlas.png",
+          () => console.log("Atlas loaded successfully"),
+          undefined,
+          (err) => console.error("Atlas failed to load:", err)
         );
         atlasTexture.magFilter = THREE.NearestFilter;
         atlasTexture.minFilter = THREE.NearestFilter;
@@ -98,125 +95,100 @@
 
         const tileSize = 16, atlasSize = 64, tileUvWidth = tileSize / atlasSize;
 
-       const blockTypes = {
-            'grass': { transparent: false, uv: { top: [0,0], bottom: [2,0], side: [1,0] } },
-            'dirt': { transparent: false, uv: { all: [1,3] } },
-            'stone': { transparent: false, uv: { all: [3,0] } },
-            'cobblestone': { transparent: false, uv: { all: [0,1] } },
-            'oak_plank': { transparent: false, uv: { all: [1,2] } },
-            'oak_log': { transparent: false, uv: { top: [3,1], bottom: [3,1], side: [2,1] } },
-            'sand': { transparent: false, uv: { all: [0,2] } },
-            'gravel': { transparent: false, uv: { all: [1,1] } },
-            'coal_ore': { transparent: false, uv: { all: [2,2] } },
-            'iron_ore': { transparent: false, uv: { all: [3,2] } },
-            'leaves': { transparent: true, uv: { all: [0,3] } },
-            'glass': { transparent: true, uv: { all: [3,1] } },
-            'stone_brick': { transparent: false, uv: { all: [2,3] } },
-            'mossy_stone': { transparent: false, uv: { all: [3,3] } },
-            'bedrock': { transparent: false, uv: { all: [0,0] } }
+        const blockTypes = {
+          'grass': { transparent: false, uv: { top: [0, 0], bottom: [2, 0], side: [1, 0] } },
+          'dirt': { transparent: false, uv: { all: [1, 3] } },
+          'stone': { transparent: false, uv: { all: [3, 0] } },
+          'cobblestone': { transparent: false, uv: { all: [0, 1] } },
+          'oak_plank': { transparent: false, uv: { all: [1, 2] } },
+          'oak_log': { transparent: false, uv: { top: [3, 1], bottom: [3, 1], side: [2, 1] } },
+          'sand': { transparent: false, uv: { all: [0, 2] } },
+          'gravel': { transparent: false, uv: { all: [1, 1] } },
+          'coal_ore': { transparent: false, uv: { all: [2, 2] } },
+          'iron_ore': { transparent: false, uv: { all: [3, 2] } },
+          'leaves': { transparent: true, uv: { all: [0, 3] } },
+          'glass': { transparent: true, uv: { all: [3, 1] } },
+          'stone_brick': { transparent: false, uv: { all: [2, 3] } },
+          'mossy_stone': { transparent: false, uv: { all: [3, 3] } },
+          'bedrock': { transparent: false, uv: { all: [0, 0] } }
         };
-
 
         let selectedBlockType = 'cobblestone';
 
-        // --- Block Interaction Highlight ---
+        // === Block Interaction Highlight ===
         const highlightGeometry = new THREE.BoxGeometry(1.01, 1.01, 1.01);
         const highlightMaterial = new THREE.MeshBasicMaterial({ color: 0x000000, wireframe: true, transparent: true, opacity: 0.8 });
         const highlightMesh = new THREE.Mesh(highlightGeometry, highlightMaterial);
         scene.add(highlightMesh);
-        
-        // Raycaster used for block targeting (required)
+
         const raycaster = new THREE.Raycaster();
 
+        // === Chunk Mesh Generation ===
+        function generateChunkMesh(chunkX, chunkZ) {
+          const key = getChunkKey(chunkX, chunkZ);
+          const chunk = { solid: { positions: [], normals: [], uvs: [], indices: [] }, transparent: { positions: [], normals: [], uvs: [], indices: [] } };
 
-        // --- World & Chunk Management ---
-        const world = new Map();
-        const chunks = new Map();
-        const chunkSize = 16, worldHeight = 256, waterLevel = 62, renderDistance = 6;
-        const simplex = new SimplexNoise();
-        const faces = [];
-
-        faces.push(
-          { uvRow: 'side', dir: [ -1, 0, 0 ], corners: [ { pos: [0, 1, 0], uv: [0, 1] }, { pos: [0, 0, 0], uv: [0, 0] }, { pos: [0, 1, 1], uv: [1, 1] }, { pos: [0, 0, 1], uv: [1, 0] } ] },
-          { uvRow: 'side', dir: [ 1, 0, 0 ], corners: [ { pos: [1, 1, 1], uv: [0, 1] }, { pos: [1, 0, 1], uv: [0, 0] }, { pos: [1, 1, 0], uv: [1, 1] }, { pos: [1, 0, 0], uv: [1, 0] } ] },
-          { uvRow: 'bottom', dir: [ 0, -1, 0 ], corners: [ { pos: [1, 0, 1], uv: [1, 1] }, { pos: [0, 0, 1], uv: [0, 1] }, { pos: [1, 0, 0], uv: [1, 0] }, { pos: [0, 0, 0], uv: [0, 0] } ] },
-          { uvRow: 'top', dir: [ 0, 1, 0 ], corners: [ { pos: [0, 1, 1], uv: [0, 1] }, { pos: [1, 1, 1], uv: [1, 1] }, { pos: [0, 1, 0], uv: [0, 0] }, { pos: [1, 1, 0], uv: [1, 0] } ] },
-          { uvRow: 'side', dir: [ 0, 0, -1 ], corners: [ { pos: [1, 1, 0], uv: [0, 1] }, { pos: [1, 0, 0], uv: [0, 0] }, { pos: [0, 1, 0], uv: [1, 1] }, { pos: [0, 0, 0], uv: [1, 0] } ] },
-          { uvRow: 'side', dir: [ 0, 0, 1 ], corners: [ { pos: [0, 1, 1], uv: [0, 1] }, { pos: [0, 0, 1], uv: [0, 0] }, { pos: [1, 1, 1], uv: [1, 1] }, { pos: [1, 0, 1], uv: [1, 0] } ] }
-        );
-
-        function getBlockKey(x,y,z){ return `${x},${y},${z}`; }
-        function getChunkKey(x,z){ return `${x},${z}`; }
-
-        function generateChunkMesh(chunkX, chunkZ){
-            const key = getChunkKey(chunkX, chunkZ);
-            const chunk = { solid: { positions:[], normals:[], uvs:[], indices:[] }, transparent: { positions:[], normals:[], uvs:[], indices:[] } };
-            for (let y = 0; y < worldHeight; y++) {
-                for (let z = 0; z < chunkSize; z++) {
-                    for (let x = 0; x < chunkSize; x++) {
-                        const worldX = chunkX * chunkSize + x;
-                        const worldZ = chunkZ * chunkSize + z;
-                        const blockKey = getBlockKey(worldX, y, worldZ);
-                        const blockType = world.get(blockKey);
-                        if (blockType) {
-                            const { transparent } = blockTypes[blockType];
-                            const meshData = transparent ? chunk.transparent : chunk.solid;
-                            for (const { dir, corners, uvRow } of faces) {
-                                const neighborKey = getBlockKey(worldX + dir[0], y + dir[1], worldZ + dir[2]);
-                                const neighborType = world.get(neighborKey);
-                                const neighborIsTransparent = neighborType && blockTypes[neighborType].transparent;
-                                if (!neighborType || (neighborIsTransparent && blockType !== 'glass')) {
-                                    const ndx = meshData.positions.length / 3;
-                                    for (const { pos, uv } of corners) {
-                                        meshData.positions.push(pos[0] + x, pos[1] + y, pos[2] + z);
-                                        meshData.normals.push(...dir);
-                                        const blockUVs = blockTypes[blockType].uv;
-                                        const uvData = blockUVs.all || blockUVs[uvRow];
-                                        meshData.uvs.push((uvData[0] + uv[0]) * tileUvWidth, 1 - (uvData[1] + uv[1]) * tileUvWidth);
-                                    }
-                                    meshData.indices.push(ndx, ndx + 1, ndx + 2, ndx + 2, ndx + 1, ndx + 3);
-                                }
-                            }
-                        }
+          for (let y = 0; y < worldHeight; y++) {
+            for (let z = 0; z < chunkSize; z++) {
+              for (let x = 0; x < chunkSize; x++) {
+                const worldX = chunkX * chunkSize + x;
+                const worldZ = chunkZ * chunkSize + z;
+                const blockKey = getBlockKey(worldX, y, worldZ);
+                const blockType = world.get(blockKey);
+                if (blockType) {
+                  const { transparent } = blockTypes[blockType];
+                  const meshData = transparent ? chunk.transparent : chunk.solid;
+                  for (const { dir, corners, uvRow } of faces) {
+                    const neighborKey = getBlockKey(worldX + dir[0], y + dir[1], worldZ + dir[2]);
+                    const neighborType = world.get(neighborKey);
+                    const neighborIsTransparent = neighborType && blockTypes[neighborType].transparent;
+                    if (!neighborType || (neighborIsTransparent && blockType !== 'glass')) {
+                      const ndx = meshData.positions.length / 3;
+                      for (const { pos, uv } of corners) {
+                        meshData.positions.push(pos[0] + x, pos[1] + y, pos[2] + z);
+                        meshData.normals.push(...dir);
+                        const blockUVs = blockTypes[blockType].uv;
+                        const uvData = blockUVs.all || blockUVs[uvRow];
+                        meshData.uvs.push((uvData[0] + uv[0]) * tileUvWidth, 1 - (uvData[1] + uv[1]) * tileUvWidth);
+                      }
+                      meshData.indices.push(ndx, ndx + 1, ndx + 2, ndx + 2, ndx + 1, ndx + 3);
                     }
+                  }
                 }
+              }
             }
-            const createMesh = (data, material) => {
-                const geometry = new THREE.BufferGeometry();
-                geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(data.positions), 3));
-                geometry.setAttribute('normal', new THREE.BufferAttribute(new Float32Array(data.normals), 3));
-                geometry.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(data.uvs), 2));
-                geometry.setIndex(data.indices);
-                const mesh = new THREE.Mesh(geometry, material);
-                mesh.position.set(chunkX * chunkSize, 0, chunkZ * chunkSize);
-                mesh.castShadow = true;
-                mesh.receiveShadow = true;
-                scene.add(mesh);
-                return mesh;
-            };
-            if (chunk.solid.positions.length > 0) chunks.set(key, { ...chunks.get(key), solidMesh: createMesh(chunk.solid, atlasMaterial) });
-            if (chunk.transparent.positions.length > 0) chunks.set(key, { ...chunks.get(key), transparentMesh: createMesh(chunk.transparent, transparentAtlasMaterial) });
+          }
+
+          const createMesh = (data, material) => {
+            const geometry = new THREE.BufferGeometry();
+            geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(data.positions), 3));
+            geometry.setAttribute('normal', new THREE.BufferAttribute(new Float32Array(data.normals), 3));
+            geometry.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(data.uvs), 2));
+            geometry.setIndex(data.indices);
+            const mesh = new THREE.Mesh(geometry, material);
+            mesh.position.set(chunkX * chunkSize, 0, chunkZ * chunkSize);
+            mesh.castShadow = true;
+            mesh.receiveShadow = true;
+            scene.add(mesh);
+            return mesh;
+          };
+
+          if (chunk.solid.positions.length > 0)
+            chunks.set(key, { ...chunks.get(key), solidMesh: createMesh(chunk.solid, atlasMaterial) });
+          if (chunk.transparent.positions.length > 0)
+            chunks.set(key, { ...chunks.get(key), transparentMesh: createMesh(chunk.transparent, transparentAtlasMaterial) });
         }
 
-
-        // Create worker
+        // === Worker Setup ===
         const chunkWorker = new Worker("./js/chunkWorker.js");
-
-        // Listen for results
         chunkWorker.onmessage = (e) => {
           const { type, chunkX, chunkZ, blocks } = e.data;
           if (type === "chunkGenerated") {
-            // Merge blocks into world map
-            Object.entries(blocks).forEach(([key, value]) => {
-              world.set(key, value);
-            });
-
-            // Build mesh on main thread (WebGL must stay here)
+            Object.entries(blocks).forEach(([key, value]) => world.set(key, value));
             generateChunkMesh(chunkX, chunkZ);
           }
         };
 
-        // Request a chunk
         function requestChunk(chunkX, chunkZ) {
           chunkWorker.postMessage({
             type: "generateChunk",
@@ -230,33 +202,65 @@
         // === Controlled Chunk Loading ===
         const playerChunkX = 0;
         const playerChunkZ = 0;
-
         const chunkCoords = [];
         for (let x = -renderDistance; x <= renderDistance; x++) {
           for (let z = -renderDistance; z <= renderDistance; z++) {
             chunkCoords.push([x, z]);
           }
         }
-
-        // Sort by distance from player so center generates first
-        chunkCoords.sort(
-          (a, b) =>
-            Math.hypot(a[0] - playerChunkX, a[1] - playerChunkZ) -
-            Math.hypot(b[0] - playerChunkX, b[1] - playerChunkZ)
-        );
-
+        chunkCoords.sort((a, b) => Math.hypot(a[0], a[1]) - Math.hypot(b[0], b[1]));
         let queueIndex = 0;
+
         function queueChunks() {
           if (queueIndex < chunkCoords.length) {
             const [x, z] = chunkCoords[queueIndex++];
             requestChunk(x, z);
-            // throttle requests to prevent freezing (30–50 ms works great)
             setTimeout(queueChunks, 40);
           } else {
             console.log("✅ All chunks requested.");
           }
         }
         queueChunks();
+
+        // === Wait for Center Chunk ===
+        function waitForCenterChunk() {
+          const key = getChunkKey(0, 0);
+          if (chunks.has(key)) {
+            console.log("🌍 Center chunk loaded, spawning player");
+            spawnPlayer();
+          } else {
+            setTimeout(waitForCenterChunk, 200);
+          }
+        }
+        waitForCenterChunk();
+
+        // === Player & Controls ===
+        const player = {
+          height: 1.8,
+          width: 0.5,
+          speed: 5,
+          jumpForce: 7,
+          velocity: new THREE.Vector3(),
+          onGround: false,
+          boundingBox: new THREE.Box3()
+        };
+        const gravity = -20;
+        camera.position.set(0, 80, 0);
+
+        const controls = { forward: false, backward: false, left: false, right: false, pitch: 0, yaw: 0, euler: new THREE.Euler(0, 0, 0, 'YXZ') };
+
+        function onMouseMove(event) {
+          if (!isPointerLocked) return;
+          controls.yaw -= event.movementX * 0.002;
+          controls.pitch -= event.movementY * 0.002;
+          controls.pitch = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, controls.pitch));
+        }
+
+        let isPointerLocked = false;
+        document.body.addEventListener('click', () => document.body.requestPointerLock());
+        document.addEventListener('pointerlockchange', () => { isPointerLocked = document.pointerLockElement === document.body; });
+        document.addEventListener('contextmenu', (e) => e.preventDefault());
+        document.addEventListener('mousemove', onMouseMove);
 
 
         // --- Block Interaction ---
