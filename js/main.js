@@ -106,7 +106,7 @@
             'gravel': { transparent: false, uv: { all: [1,2] } },
             'coal_ore': { transparent: false, uv: { all: [2,2] } },
             'iron_ore': { transparent: false, uv: { all: [3,2] } },
-            'leaves': { transparent: true, uv: { all: [0,3] } },
+            'leaves': { transparent: false, uv: { all: [0,3] } },
             'glass': { transparent: true, uv: { all: [1,3] } },
             'stone_brick': { transparent: false, uv: { all: [2,3] } },
             'mossy_stone': { transparent: false, uv: { all: [3,3] } },
