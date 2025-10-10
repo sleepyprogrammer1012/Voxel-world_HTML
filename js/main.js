@@ -222,6 +222,47 @@
         }
         queueChunks();
 
+        // --- Spawn helper (safe to call before `player` is declared) ---
+        function spawnPlayer() {
+          // spawn coordinates (center)
+          const spawnX = 0;
+          const spawnZ = 0;
+
+          // find topmost block at (0, z)
+          let surfaceY = 64; // fallback
+          for (let y = worldHeight - 1; y >= 0; y--) {
+            const k = getBlockKey(spawnX, y, spawnZ);
+            if (world.has(k)) {
+              // prefer non-water blocks (your worker uses "glass" as water placeholder)
+              const type = world.get(k);
+              if (type !== 'glass') {
+                surfaceY = y;
+                break;
+              } else {
+                // if it's water, we still want to spawn on top of it
+                surfaceY = y;
+                // continue searching below in case there is solid ground underneath
+              }
+            }
+          }
+
+          const spawnY = surfaceY + 2; // a little above the surface
+          camera.position.set(spawnX + 0.5, spawnY, spawnZ + 0.5);
+          camera.updateMatrixWorld();
+
+          // If player exists, set respawn and reset velocity; otherwise store pending spawn
+          if (typeof player !== 'undefined') {
+            player.respawn = new THREE.Vector3(spawnX + 0.5, spawnY, spawnZ + 0.5);
+            if (player.velocity && player.velocity.set) player.velocity.set(0, 0, 0);
+            player.onGround = true;
+          } else {
+            // temporary global so we can consume it after player is declared
+            window.pendingSpawn = new THREE.Vector3(spawnX + 0.5, spawnY, spawnZ + 0.5);
+          }
+
+          console.log(`spawnPlayer(): camera placed at (${camera.position.x.toFixed(2)}, ${camera.position.y.toFixed(2)}, ${camera.position.z.toFixed(2)})`);
+        }
+
         // === Wait for Center Chunk ===
         function waitForCenterChunk() {
           const key = getChunkKey(0, 0);
@@ -244,6 +285,17 @@
           onGround: false,
           boundingBox: new THREE.Box3()
         };
+
+        // if spawn was already triggered earlier, apply it to the player object now
+        if (window.pendingSpawn) {
+          player.respawn = window.pendingSpawn.clone();
+          camera.position.copy(window.pendingSpawn);
+          player.velocity.set(0, 0, 0);
+          player.onGround = true;
+          delete window.pendingSpawn;
+          console.log("Applied pending spawn to player:", player.respawn);
+        }
+
         const gravity = -20;
         camera.position.set(0, 80, 0);
 
