@@ -54,6 +54,18 @@
         const dayDuration = 60 * 5; // 5 minutes
         const skyColors = { day: new THREE.Color('#7ab5ff'), sunset: new THREE.Color('#ff8c00'), night: new THREE.Color('#000033') };
 
+        function waitForCenterChunk() {
+          const key = getChunkKey(0, 0);
+          if (chunks.has(key)) {
+            console.log("🌍 Center chunk loaded, spawning player");
+            spawnPlayer();
+          } else {
+            setTimeout(waitForCenterChunk, 200);
+          }
+        }
+        waitForCenterChunk();
+
+
         // --- Player Physics ---
         const player = { height: 1.8, width: 0.5, speed: 5, jumpForce: 7, velocity: new THREE.Vector3(), onGround: false, boundingBox: new THREE.Box3() };
         const gravity = -20;
@@ -214,6 +226,38 @@
             worldHeight
           });
         }
+
+        // === Controlled Chunk Loading ===
+        const playerChunkX = 0;
+        const playerChunkZ = 0;
+
+        const chunkCoords = [];
+        for (let x = -renderDistance; x <= renderDistance; x++) {
+          for (let z = -renderDistance; z <= renderDistance; z++) {
+            chunkCoords.push([x, z]);
+          }
+        }
+
+        // Sort by distance from player so center generates first
+        chunkCoords.sort(
+          (a, b) =>
+            Math.hypot(a[0] - playerChunkX, a[1] - playerChunkZ) -
+            Math.hypot(b[0] - playerChunkX, b[1] - playerChunkZ)
+        );
+
+        let queueIndex = 0;
+        function queueChunks() {
+          if (queueIndex < chunkCoords.length) {
+            const [x, z] = chunkCoords[queueIndex++];
+            requestChunk(x, z);
+            // throttle requests to prevent freezing (30–50 ms works great)
+            setTimeout(queueChunks, 40);
+          } else {
+            console.log("✅ All chunks requested.");
+          }
+        }
+        queueChunks();
+
 
         // --- Block Interaction ---
         function getBlockAtPointer() {
