@@ -88,17 +88,17 @@
 
        const blockTypes = {
             'grass': { transparent: false, uv: { top: [0,0], bottom: [2,0], side: [1,0] } },
-            'dirt': { transparent: false, uv: { all: [2,0] } },
+            'dirt': { transparent: false, uv: { all: [1,3] } },
             'stone': { transparent: false, uv: { all: [3,0] } },
             'cobblestone': { transparent: false, uv: { all: [0,1] } },
-            'oak_plank': { transparent: false, uv: { all: [1,1] } },
+            'oak_plank': { transparent: false, uv: { all: [1,2] } },
             'oak_log': { transparent: false, uv: { top: [3,1], bottom: [3,1], side: [2,1] } },
             'sand': { transparent: false, uv: { all: [0,2] } },
-            'gravel': { transparent: false, uv: { all: [1,2] } },
+            'gravel': { transparent: false, uv: { all: [1,1] } },
             'coal_ore': { transparent: false, uv: { all: [2,2] } },
             'iron_ore': { transparent: false, uv: { all: [3,2] } },
             'leaves': { transparent: true, uv: { all: [0,3] } },
-            'glass': { transparent: true, uv: { all: [1,3] } },
+            'glass': { transparent: true, uv: { all: [3,1] } },
             'stone_brick': { transparent: false, uv: { all: [2,3] } },
             'mossy_stone': { transparent: false, uv: { all: [3,3] } },
             'bedrock': { transparent: false, uv: { all: [0,0] } }
