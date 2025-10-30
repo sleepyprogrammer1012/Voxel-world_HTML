@@ -650,7 +650,7 @@
                        // }
                     //}
                // }
-           // };//
+           
 
             window.updatePlayer = (delta) => {
                 player.onGround = false;
