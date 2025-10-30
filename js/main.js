@@ -238,7 +238,7 @@
             Object.entries(blocks).forEach(([key, value]) => {
               const [x, y, z] = key.split(',').map(Number);   // parse worker’s string key
               world.set(getBlockKey(x, y, z), value);
-            });
+            };
             generateChunkMesh(chunkX, chunkZ);
           }
         };
