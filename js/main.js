@@ -128,6 +128,28 @@
 
           return fromDigits(interleaved);
         }
+        // ✅ Add this at the same level
+        function decodeChunkKey(key, order = 6) {
+          const digits = order * 2;
+          const base3 = [];
+          let n = key;
+          for (let i = 0; i < digits; i++) {
+            base3.push(n % 3);
+            n = Math.floor(n / 3);
+          }
+
+          const xb = [], zb = [];
+          for (let i = 0; i < digits; i += 2) {
+            xb.push(base3[i]);
+            zb.push(base3[i + 1]);
+          }
+
+          const fromDigits = arr =>
+            arr.reduce((acc, d, i) => acc + d * (3 ** i), 0);
+
+          return [fromDigits(xb.reverse()), fromDigits(zb.reverse())];
+        }
+
 
         // === Texture & Block Setup ===
         const textureLoader = new THREE.TextureLoader();
