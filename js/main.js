@@ -63,7 +63,7 @@
         // === World & Chunk Management ===
         const world = new Map();
         const chunks = new Map();
-        const chunkSize = 16, worldHeight = 256, waterLevel = 62, renderDistance = 6;
+        const chunkSize = 16, worldHeight = 256, waterLevel = 62, renderDistance = 3;
         const simplex = new SimplexNoise();
 
         const faces = [
