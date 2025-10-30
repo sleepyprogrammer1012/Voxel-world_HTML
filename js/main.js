@@ -701,7 +701,7 @@
                     }
                 }
             };
-        }; 
+         
 
         fullCodeImplementations();
         player.respawn = new THREE.Vector3(0, 80, 0);
