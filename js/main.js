@@ -687,7 +687,11 @@
                                     const intersection = player.boundingBox.clone().intersect(blockBox);
                                     const depth = new THREE.Vector3(); intersection.getSize(depth);
                                     if (axis === 'y') {
-                                        if (player.velocity.y <= 0 && player.boundingBox.min.y < blockBox.max.y) { player.onGround = true; player.velocity.y = 0; camera.position.y += depth.y; }
+                                        if (player.velocity.y <= 0) {
+                                          player.onGround = true;
+                                          player.velocity.y = 0;
+                                         // Snap just above the block, not by full depth
+                                         camera.position.y = blockBox.max.y + player.height;}
                                         else if (player.velocity.y > 0) { player.velocity.y = 0; camera.position.y -= depth.y; }
                                     } else if (axis === 'x') {
                                         if (camera.position.x > x) camera.position.x += depth.x; else camera.position.x -= depth.x;
