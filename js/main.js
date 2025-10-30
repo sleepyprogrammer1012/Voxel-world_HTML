@@ -75,8 +75,59 @@
           { uvRow: 'side', dir: [0, 0, 1], corners: [{ pos: [0, 1, 1], uv: [0, 1] }, { pos: [0, 0, 1], uv: [0, 0] }, { pos: [1, 1, 1], uv: [1, 1] }, { pos: [1, 0, 1], uv: [1, 0] }] }
         ];
 
-        function getBlockKey(x, y, z) { return `${x},${y},${z}`; }
-        function getChunkKey(x, z) { return `${x},${z}`; }
+       // === Morton/Peano Index Helpers ===
+
+      // Encode 3D block coordinates into a single integer (base-3 interleave)
+        function getBlockKey(x, y, z, order = 6) {
+        // order = number of base-3 digits (enough to cover worldHeight and chunkSize)
+          function toBase3(n, digits) {
+            const arr = [];
+            for (let i = 0; i < digits; i++) {
+              arr.push(n % 3);
+              n = Math.floor(n / 3);
+            }
+            return arr;
+          }
+          function fromDigits(digits) {
+            return digits.reduce((acc, d, i) => acc + d * (3 ** i), 0);
+          }
+
+          const xb = toBase3(x, order);
+          const yb = toBase3(y, order);
+          const zb = toBase3(z, order);
+
+          const interleaved = [];
+          for (let i = order - 1; i >= 0; i--) {
+            interleaved.push(xb[i], yb[i], zb[i]);
+          }
+
+          return fromDigits(interleaved);
+        }
+
+        // Encode 2D chunk coordinates into a single integer (base-3 interleave)
+        function getChunkKey(x, z, order = 6) {
+          function toBase3(n, digits) {
+            const arr = [];
+            for (let i = 0; i < digits; i++) {
+              arr.push(n % 3);
+              n = Math.floor(n / 3);
+            }
+            return arr;
+          }
+          function fromDigits(digits) {
+            return digits.reduce((acc, d, i) => acc + d * (3 ** i), 0);
+          }
+
+          const xb = toBase3(x, order);
+          const zb = toBase3(z, order);
+
+          const interleaved = [];
+          for (let i = order - 1; i >= 0; i--) {
+            interleaved.push(xb[i], zb[i]);
+          }
+
+          return fromDigits(interleaved);
+        }
 
         // === Texture & Block Setup ===
         const textureLoader = new THREE.TextureLoader();
