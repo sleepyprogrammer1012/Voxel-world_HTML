@@ -235,10 +235,10 @@
         chunkWorker.onmessage = (e) => {
           const { type, chunkX, chunkZ, blocks } = e.data;
           if (type === "chunkGenerated") {
-            Object.entries(blocks).forEach(([key, value]) => {
+            Object.entries(blocks).forEach([key, value]) => {
               const [x, y, z] = key.split(',').map(Number);   // parse worker’s string key
               world.set(getBlockKey(x, y, z), value);
-            };
+            });
             generateChunkMesh(chunkX, chunkZ);
           }
         };
