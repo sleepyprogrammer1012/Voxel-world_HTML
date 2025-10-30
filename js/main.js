@@ -528,7 +528,7 @@
               }
             }
           }
-
+          
           // Clean up chunks that are too far away
           chunks.forEach((data, key) => {
               const [cx, cz] = decodeChunkKey(key); // use the global one you defined next to getChunkKey
