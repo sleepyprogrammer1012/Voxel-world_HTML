@@ -596,33 +596,33 @@
                 blockSelector.appendChild(option);
             });
 
-            window.generateChunk = (chunkX, chunkZ) => {
-                const terrainDetailScale = 0.05; const terrainHeightScale = 0.01; const treeNoiseScale = 0.08;
-                for (let x = 0; x < chunkSize; x++) {
-                    for (let z = 0; z < chunkSize; z++) {
-                        const worldX = chunkX * chunkSize + x; const worldZ = chunkZ * chunkSize + z;
-                        const heightDetail = simplex.noise2D(worldX * terrainDetailScale, worldZ * terrainDetailScale) * 10;
-                        const heightBase = simplex.noise2D(worldX * terrainHeightScale, worldZ * terrainHeightScale) * 20;
+           // window.generateChunk = (chunkX, chunkZ) => {
+              //  const terrainDetailScale = 0.05; const terrainHeightScale = 0.01; const treeNoiseScale = 0.08;
+              //  for (let x = 0; x < chunkSize; x++) {
+                //    for (let z = 0; z < chunkSize; z++) {
+                 //       const worldX = chunkX * chunkSize + x; const worldZ = chunkZ * chunkSize + z;
+                 //       const heightDetail = simplex.noise2D(worldX * terrainDetailScale, worldZ * terrainDetailScale) * 10;
+                 //       const heightBase = simplex.noise2D(worldX * terrainHeightScale, worldZ * terrainHeightScale) * 20;
                         // FIXED: use +64 so terrain is around Y=64 (near camera spawn)
-                        const height = Math.floor(heightBase + heightDetail) + 64;
+                 //       const height = Math.floor(heightBase + heightDetail) + 64;
                         
-                        world.set(getBlockKey(worldX, 0, worldZ), 'bedrock');
-                        if (Math.random() < 0.5) world.set(getBlockKey(worldX, 1, worldZ), 'bedrock');
+                 //       world.set(getBlockKey(worldX, 0, worldZ), 'bedrock');
+                  //      if (Math.random() < 0.5) world.set(getBlockKey(worldX, 1, worldZ), 'bedrock');
                         
-                        for (let y = 2; y < height; y++) {
-                            let blockType = 'stone';
-                            if (y > height - 5) blockType = 'dirt';
-                            if (y === height -1 && y > waterLevel) blockType = 'grass';
-                            else if (y < waterLevel + 2 && y > waterLevel -4) blockType = 'sand';
-                            world.set(getBlockKey(worldX, y, worldZ), blockType);
-                        }
+                   //     for (let y = 2; y < height; y++) {
+                   //         let blockType = 'stone';
+                   //         if (y > height - 5) blockType = 'dirt';
+                   //         if (y === height -1 && y > waterLevel) blockType = 'grass';
+                   //         else if (y < waterLevel + 2 && y > waterLevel -4) blockType = 'sand';
+                   //         world.set(getBlockKey(worldX, y, worldZ), blockType);
+                    //    }
 
-                        for (let y = 2; y < height - 5; y++) {
-                            if(simplex.noise3D(worldX * 0.1, y * 0.1, worldZ * 0.1) > 0.8) world.set(getBlockKey(worldX, y, worldZ), 'coal_ore');
-                            if(simplex.noise3D(worldX * 0.2, y * 0.2, worldZ * 0.2) > 0.85 && y < 48) world.set(getBlockKey(worldX, y, worldZ), 'iron_ore');
-                        }
-                    }
-                }
+                     //   for (let y = 2; y < height - 5; y++) {
+                     //       if(simplex.noise3D(worldX * 0.1, y * 0.1, worldZ * 0.1) > 0.8) world.set(getBlockKey(worldX, y, worldZ), 'coal_ore');
+                     //       if(simplex.noise3D(worldX * 0.2, y * 0.2, worldZ * 0.2) > 0.85 && y < 48) world.set(getBlockKey(worldX, y, worldZ), 'iron_ore');
+                     //   }
+                    //}
+               // }
 
                 // Trees
                 for (let x = 0; x < chunkSize; x++) {
