@@ -531,8 +531,6 @@
           
           // Clean up chunks that are too far away
           chunks.forEach((data, key) => {
-            const [cx, cz] = decodeChunkKey(key); // use the global one you defined next to getChunkKey
-
             // ✅ decode the numeric key into chunk coordinates
             const [cx, cz] = decodeChunkKey(key);
 
