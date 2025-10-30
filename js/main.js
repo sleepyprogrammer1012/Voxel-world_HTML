@@ -708,6 +708,6 @@
         // Start
         updateChunks();
         animate();
-
+     }
 
 
