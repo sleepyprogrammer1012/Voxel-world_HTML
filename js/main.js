@@ -625,32 +625,32 @@
                // }
 
                 // Trees
-                for (let x = 0; x < chunkSize; x++) {
-                    for (let z = 0; z < chunkSize; z++) {
-                        const worldX = chunkX * chunkSize + x; const worldZ = chunkZ * chunkSize + z;
-                        const height = Math.floor(simplex.noise2D((worldX) * terrainHeightScale, (worldZ) * terrainHeightScale) * 20 + simplex.noise2D((worldX) * terrainDetailScale, (worldZ) * terrainDetailScale) * 10) + 64;
-                        const treeNoise = simplex.noise2D(worldX * treeNoiseScale, worldZ * treeNoiseScale);
-                        if (treeNoise > 0.8 && world.get(getBlockKey(worldX, height - 1, worldZ)) === 'grass') {
-                            const treeHeight = Math.floor(Math.random() * 3) + 4;
-                            for (let i = 0; i < treeHeight; i++) world.set(getBlockKey(worldX, height + i, worldZ), 'oak_log');
-                            for (let tx = -2; tx <= 2; tx++) {
-                                for (let ty = -2; ty <= 2; ty++) {
-                                    for (let tz = -2; tz <= 2; tz++) {
-                                        if (tx === 0 && tz === 0 && ty < 0) continue;
-                                        const radius = tx*tx + ty*ty + tz*tz;
-                                        if (radius <= 5) {
-                                            const leafPos = { x: worldX + tx, y: height + treeHeight - 2 + ty, z: worldZ + tz };
-                                            if(!world.has(getBlockKey(leafPos.x, leafPos.y, leafPos.z))) {
-                                                world.set(getBlockKey(leafPos.x, leafPos.y, leafPos.z), 'leaves');
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            };
+                //for (let x = 0; x < chunkSize; x++) {
+                  //  for (let z = 0; z < chunkSize; z++) {
+                  //      const worldX = chunkX * chunkSize + x; const worldZ = chunkZ * chunkSize + z;
+                   //     const height = Math.floor(simplex.noise2D((worldX) * terrainHeightScale, (worldZ) * terrainHeightScale) * 20 + simplex.noise2D((worldX) * terrainDetailScale, (worldZ) * terrainDetailScale) * 10) + 64;
+                    //    const treeNoise = simplex.noise2D(worldX * treeNoiseScale, worldZ * treeNoiseScale);
+                     //   if (treeNoise > 0.8 && world.get(getBlockKey(worldX, height - 1, worldZ)) === 'grass') {
+                       //     const treeHeight = Math.floor(Math.random() * 3) + 4;
+                        //    for (let i = 0; i < treeHeight; i++) world.set(getBlockKey(worldX, height + i, worldZ), 'oak_log');
+                        //    for (let tx = -2; tx <= 2; tx++) {
+                         //       for (let ty = -2; ty <= 2; ty++) {
+                         //           for (let tz = -2; tz <= 2; tz++) {
+                          //              if (tx === 0 && tz === 0 && ty < 0) continue;
+                            //            const radius = tx*tx + ty*ty + tz*tz;
+                            //            if (radius <= 5) {
+                             //               const leafPos = { x: worldX + tx, y: height + treeHeight - 2 + ty, z: worldZ + tz };
+                              //              if(!world.has(getBlockKey(leafPos.x, leafPos.y, leafPos.z))) {
+                              //                  world.set(getBlockKey(leafPos.x, leafPos.y, leafPos.z), 'leaves');
+                               //             }
+                               //         }
+                              //      }
+                             //   }
+                           // }
+                       // }
+                    //}
+               // }
+           // };//
 
             window.updatePlayer = (delta) => {
                 player.onGround = false;
@@ -701,7 +701,7 @@
                     }
                 }
             };
-       // };
+        }; 
 
         fullCodeImplementations();
         player.respawn = new THREE.Vector3(0, 80, 0);
