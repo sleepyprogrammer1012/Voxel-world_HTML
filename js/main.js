@@ -546,7 +546,7 @@
               chunks.delete(key);
             }
           });
-
+          }
         // --- Initialization & Full Implementations ---
         const fullCodeImplementations = () => {
             document.addEventListener('keydown', (e) => {
@@ -708,6 +708,6 @@
         // Start
         updateChunks();
         animate();
-      }
+      
 
 
