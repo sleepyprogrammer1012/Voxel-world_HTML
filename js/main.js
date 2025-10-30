@@ -430,7 +430,7 @@
                 if (pos.z % chunkSize === 0) chunksToUpdate.add(getChunkKey(mainChunkX, mainChunkZ - 1));
                 if (pos.z % chunkSize === chunkSize - 1) chunksToUpdate.add(getChunkKey(mainChunkX, mainChunkZ + 1));
                 chunksToUpdate.forEach(key => {
-                    const [cx, cz] = key.split(',').map(Number);
+                    const [cx, cz] = decodeChunkKey(Number(key));
                     updateChunkMesh(cx, cz);
                 });
             }
