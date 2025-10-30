@@ -7,10 +7,31 @@ const simplex = new NOISE.Simplex();
 simplex.init();
 simplex.noiseDetail(4, 0.5); // octaves + persistence
 
-function getBlockKey(x, y, z) {
-  return `${x},${y},${z}`;
-}
+// Morton/Peano encoder (3D)
+function getBlockKey(x, y, z, order = 6) {
+  function toBase3(n, digits) {
+    const arr = [];
+    for (let i = 0; i < digits; i++) {
+      arr.push(n % 3);
+      n = Math.floor(n / 3);
+    }
+    return arr;
+  }
+  function fromDigits(arr) {
+    return arr.reduce((acc, d, i) => acc + d * (3 ** i), 0);
+  }
 
+  const xb = toBase3(x, order);
+  const yb = toBase3(y, order);
+  const zb = toBase3(z, order);
+
+  const interleaved = [];
+  for (let i = order - 1; i >= 0; i--) {
+    interleaved.push(xb[i], yb[i], zb[i]);
+  }
+
+  return fromDigits(interleaved);
+}
 // Terrain + Trees
 function generateChunkData(chunkX, chunkZ, chunkSize, worldHeight) {
   const blocks = {};
