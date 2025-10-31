@@ -459,29 +459,36 @@
             }
         });
 
-        function updateChunkMesh(chunkX, chunkZ) {
-          const key = getChunkKey(chunkX, chunkZ);
-          const chunkData = chunks.get(key) || {};
+       function updateChunkMesh(chunkX, chunkZ) {
+         const key = getChunkKey(chunkX, chunkZ);
+         const chunkData = chunks.get(key);
 
-          // Remove old meshes if they exist
-          if (chunkData.solidMesh) {
-            scene.remove(chunkData.solidMesh);
-            chunkData.solidMesh.geometry.dispose();
-            delete chunkData.solidMesh;
-          }
-          if (chunkData.transparentMesh) {
-            scene.remove(chunkData.transparentMesh);
-            chunkData.transparentMesh.geometry.dispose();
-            delete chunkData.transparentMesh;
-          }
+         // If there’s an existing mesh, remove and dispose it
+         if (chunkData) {
+           if (chunkData.solidMesh) {
+             scene.remove(chunkData.solidMesh);
+             chunkData.solidMesh.geometry.dispose();
+             delete chunkData.solidMesh;
+           }
+           if (chunkData.transparentMesh) {
+             scene.remove(chunkData.transparentMesh);
+             chunkData.transparentMesh.geometry.dispose();
+             delete chunkData.transparentMesh;
+           }
+         }
 
-          // Reset the entry so we don’t carry stale references
-          chunks.set(key, {});
+         // Always regenerate from world data
+         generateChunkMesh(chunkX, chunkZ);
 
-          // Rebuild the mesh from current world data
-          generateChunkMesh(chunkX, chunkZ);
-        }
-
+         // If the chunk is now completely empty, make sure we don’t keep a blank entry
+         const rebuilt = chunks.get(key);
+         if (
+           (!rebuilt?.solidMesh) &&
+           (!rebuilt?.transparentMesh)
+         ) {
+           chunks.delete(key);
+         }
+       }
         // --- Game Loop ---
         const clock = new THREE.Clock();
         let lastPlayerChunkX = Infinity, lastPlayerChunkZ = Infinity;
