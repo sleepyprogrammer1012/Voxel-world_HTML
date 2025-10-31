@@ -53,7 +53,7 @@
         scene.add(sun);
 
         let timeOfDay = Math.PI / 4;
-        const dayDuration = 60 * 20; // 5 minutes
+        const dayDuration = 60 * 5; // 20 minutes
         const skyColors = {
           day: new THREE.Color('#7ab5ff'),
           sunset: new THREE.Color('#ff8c00'),
