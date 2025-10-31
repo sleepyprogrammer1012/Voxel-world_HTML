@@ -517,7 +517,7 @@
           : null;
 
         chunks.set(key, { solidMesh, transparentMesh });
-       }
+      }
 
         // --- Game Loop ---
         const clock = new THREE.Clock();
