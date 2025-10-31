@@ -467,18 +467,20 @@
           if (chunkData.solidMesh) {
             scene.remove(chunkData.solidMesh);
             chunkData.solidMesh.geometry.dispose();
+            delete chunkData.solidMesh;
           }
           if (chunkData.transparentMesh) {
             scene.remove(chunkData.transparentMesh);
             chunkData.transparentMesh.geometry.dispose();
+            delete chunkData.transparentMesh;
           }
 
-  // Reset the entry so we don’t carry stale references
-  chunks.set(key, {});
+          // Reset the entry so we don’t carry stale references
+          chunks.set(key, {});
 
-  // Rebuild the mesh from current world data
-  generateChunkMesh(chunkX, chunkZ);
-}
+          // Rebuild the mesh from current world data
+          generateChunkMesh(chunkX, chunkZ);
+        }
 
         // --- Game Loop ---
         const clock = new THREE.Clock();
