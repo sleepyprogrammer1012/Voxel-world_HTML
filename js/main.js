@@ -355,7 +355,7 @@
           height: 1.8,
           width: 0.5,
           speed: 5,
-          jumpForce: 8,
+          jumpForce: 7.5,
           velocity: new THREE.Vector3(),
           onGround: false,
           boundingBox: new THREE.Box3()
@@ -412,8 +412,9 @@
         }
 
 
+        // --- Block Interaction Clicks ---
         document.addEventListener('mousedown', (event) => {
-            if (!isPointerLocked || !highlightMesh.visible) return;
+            if (!isPointerLocked) return;   // ✅ don’t block just because highlight isn’t visible
             const target = getBlockAtPointer();
             if (!target) return;
 
@@ -430,7 +431,7 @@
                     worldNeedsUpdate = true;
                 }
             } else if (event.button === 2) { // Place
-                // don't place inside player
+                // don’t place inside player
                 const playerBox = new THREE.Box3().setFromCenterAndSize(
                     new THREE.Vector3(pos.x + 0.5, pos.y + 0.5, pos.z + 0.5),
                     new THREE.Vector3(1, 1, 1)
@@ -457,7 +458,6 @@
                 });
             }
         });
-
 
         function updateChunkMesh(chunkX, chunkZ) {
           const key = getChunkKey(chunkX, chunkZ);
