@@ -355,7 +355,7 @@
           height: 1.8,
           width: 0.5,
           speed: 5,
-          jumpForce: 10,
+          jumpForce: 8,
           velocity: new THREE.Vector3(),
           onGround: false,
           boundingBox: new THREE.Box3()
