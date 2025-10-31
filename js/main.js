@@ -404,6 +404,36 @@
             }
         });
 
+      // === Chunk Mesh Utilities ===
+      function updateChunkMesh(chunkX, chunkZ) {
+        const key = getChunkKey(chunkX, chunkZ);
+        const chunkData = chunks.get(key);
+
+        // If there’s an existing mesh, remove and dispose it
+        if (chunkData) {
+          if (chunkData.solidMesh) {
+            scene.remove(chunkData.solidMesh);
+            chunkData.solidMesh.geometry.dispose();
+            delete chunkData.solidMesh;
+          }
+          if (chunkData.transparentMesh) {
+            scene.remove(chunkData.transparentMesh);
+            chunkData.transparentMesh.geometry.dispose();
+            delete chunkData.transparentMesh;
+          }
+        }
+
+        // Always regenerate from world data
+        generateChunkMesh(chunkX, chunkZ);
+
+        // If the chunk is now completely empty, remove it
+        const rebuilt = chunks.get(key);
+        if (!rebuilt?.solidMesh && !rebuilt?.transparentMesh) {
+          chunks.delete(key);
+        }
+      }
+
+      // === Full Chunk Mesh Generation ===
       function generateChunkMesh(chunkX, chunkZ) {
         const key = getChunkKey(chunkX, chunkZ);
 
@@ -425,14 +455,52 @@
           transparent: { positions: [], normals: [], uvs: [], indices: [] } 
         };
 
-        // ... your existing triple loop that fills chunk.solid / chunk.transparent ...
+        // === Geometry Loop ===
+        for (let y = 0; y < worldHeight; y++) {
+          for (let z = 0; z < chunkSize; z++) {
+            for (let x = 0; x < chunkSize; x++) {
+              const worldX = chunkX * chunkSize + x;
+              const worldZ = chunkZ * chunkSize + z;
+              const blockKey = getBlockKey(worldX, y, worldZ);
+              const blockType = world.get(blockKey);
+              if (!blockType) continue;
 
+              const { transparent } = blockTypes[blockType];
+              const meshData = transparent ? chunk.transparent : chunk.solid;
+
+              for (const { dir, corners, uvRow } of faces) {
+                const neighborKey = getBlockKey(worldX + dir[0], y + dir[1], worldZ + dir[2]);
+                const neighborType = world.get(neighborKey);
+                const neighborIsTransparent = neighborType && blockTypes[neighborType].transparent;
+
+                if (!neighborType || (neighborIsTransparent && blockType !== 'glass')) {
+                  const ndx = meshData.positions.length / 3;
+                  for (const { pos, uv } of corners) {
+                    meshData.positions.push(pos[0] + x, pos[1] + y, pos[2] + z);
+                    meshData.normals.push(...dir);
+
+                    const blockUVs = blockTypes[blockType].uv;
+                    const uvData = blockUVs.all || blockUVs[uvRow];
+                    meshData.uvs.push(
+                      (uvData[0] + uv[0]) * tileUvWidth,
+                      1 - (uvData[1] + uv[1]) * tileUvWidth
+                    );
+                  }
+                  meshData.indices.push(ndx, ndx + 1, ndx + 2, ndx + 2, ndx + 1, ndx + 3);
+                }
+              }
+            }
+          }
+        }
+
+        // === Create Meshes ===
         const createMesh = (data, material) => {
           const geometry = new THREE.BufferGeometry();
           geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(data.positions), 3));
           geometry.setAttribute('normal', new THREE.BufferAttribute(new Float32Array(data.normals), 3));
           geometry.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(data.uvs), 2));
           geometry.setIndex(data.indices);
+
           const mesh = new THREE.Mesh(geometry, material);
           mesh.position.set(chunkX * chunkSize, 0, chunkZ * chunkSize);
           mesh.castShadow = true;
@@ -441,19 +509,41 @@
           return mesh;
         };
 
-        const newData = {};
-        if (chunk.solid.positions.length > 0) {
-          newData.solidMesh = createMesh(chunk.solid, atlasMaterial);
-        }
-        if (chunk.transparent.positions.length > 0) {
-          newData.transparentMesh = createMesh(chunk.transparent, transparentAtlasMaterial);
-        }
+        const solidMesh = chunk.solid.positions.length > 0
+          ? createMesh(chunk.solid, atlasMaterial)
+          : null;
+        const transparentMesh = chunk.transparent.positions.length > 0
+          ? createMesh(chunk.transparent, transparentAtlasMaterial)
+          : null;
 
-        if (Object.keys(newData).length > 0) {
-          chunks.set(key, newData);
-        } else {
-          chunks.delete(key);
-        }
+        chunks.set(key, { solidMesh, transparentMesh });
+      }
+
+
+        // === Create Meshes ===
+        const createMesh = (data, material) => {
+          const geometry = new THREE.BufferGeometry();
+          geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(data.positions), 3));
+          geometry.setAttribute('normal', new THREE.BufferAttribute(new Float32Array(data.normals), 3));
+          geometry.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(data.uvs), 2));
+          geometry.setIndex(data.indices);
+
+          const mesh = new THREE.Mesh(geometry, material);
+          mesh.position.set(chunkX * chunkSize, 0, chunkZ * chunkSize);
+          mesh.castShadow = true;
+          mesh.receiveShadow = true;
+          scene.add(mesh);
+          return mesh;
+        };
+
+        const solidMesh = chunk.solid.positions.length > 0
+          ? createMesh(chunk.solid, atlasMaterial)
+          : null;
+        const transparentMesh = chunk.transparent.positions.length > 0
+          ? createMesh(chunk.transparent, transparentAtlasMaterial)
+          : null;
+
+        chunks.set(key, { solidMesh, transparentMesh });
       }
 
         // --- Game Loop ---
