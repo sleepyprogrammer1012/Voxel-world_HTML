@@ -459,36 +459,58 @@
             }
         });
 
-       function updateChunkMesh(chunkX, chunkZ) {
-         const key = getChunkKey(chunkX, chunkZ);
-         const chunkData = chunks.get(key);
+      function generateChunkMesh(chunkX, chunkZ) {
+        const key = getChunkKey(chunkX, chunkZ);
 
-         // If there’s an existing mesh, remove and dispose it
-         if (chunkData) {
-           if (chunkData.solidMesh) {
-             scene.remove(chunkData.solidMesh);
-             chunkData.solidMesh.geometry.dispose();
-             delete chunkData.solidMesh;
-           }
-           if (chunkData.transparentMesh) {
-             scene.remove(chunkData.transparentMesh);
-             chunkData.transparentMesh.geometry.dispose();
-             delete chunkData.transparentMesh;
-           }
-         }
+        // Remove any old meshes first
+        const oldData = chunks.get(key);
+        if (oldData) {
+          if (oldData.solidMesh) {
+            scene.remove(oldData.solidMesh);
+            oldData.solidMesh.geometry.dispose();
+          }
+          if (oldData.transparentMesh) {
+            scene.remove(oldData.transparentMesh);
+            oldData.transparentMesh.geometry.dispose();
+          }
+        }
 
-         // Always regenerate from world data
-         generateChunkMesh(chunkX, chunkZ);
+        const chunk = { 
+          solid: { positions: [], normals: [], uvs: [], indices: [] }, 
+          transparent: { positions: [], normals: [], uvs: [], indices: [] } 
+        };
 
-         // If the chunk is now completely empty, make sure we don’t keep a blank entry
-         const rebuilt = chunks.get(key);
-         if (
-           (!rebuilt?.solidMesh) &&
-           (!rebuilt?.transparentMesh)
-         ) {
-           chunks.delete(key);
-         }
-       }
+        // ... your existing triple loop that fills chunk.solid / chunk.transparent ...
+
+        const createMesh = (data, material) => {
+          const geometry = new THREE.BufferGeometry();
+          geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(data.positions), 3));
+          geometry.setAttribute('normal', new THREE.BufferAttribute(new Float32Array(data.normals), 3));
+          geometry.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(data.uvs), 2));
+          geometry.setIndex(data.indices);
+          const mesh = new THREE.Mesh(geometry, material);
+          mesh.position.set(chunkX * chunkSize, 0, chunkZ * chunkSize);
+          mesh.castShadow = true;
+          mesh.receiveShadow = true;
+          scene.add(mesh);
+          return mesh;
+        };
+
+        const newData = {};
+        if (chunk.solid.positions.length > 0) {
+          newData.solidMesh = createMesh(chunk.solid, atlasMaterial);
+        }
+        if (chunk.transparent.positions.length > 0) {
+          newData.transparentMesh = createMesh(chunk.transparent, transparentAtlasMaterial);
+        }
+
+        if (Object.keys(newData).length > 0) {
+          chunks.set(key, newData);
+        } else {
+          chunks.delete(key);
+        }
+      }
+
         // --- Game Loop ---
         const clock = new THREE.Clock();
         let lastPlayerChunkX = Infinity, lastPlayerChunkZ = Infinity;
