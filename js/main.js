@@ -519,33 +519,6 @@
         chunks.set(key, { solidMesh, transparentMesh });
       }
 
-
-        // === Create Meshes ===
-        const createMesh = (data, material) => {
-          const geometry = new THREE.BufferGeometry();
-          geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(data.positions), 3));
-          geometry.setAttribute('normal', new THREE.BufferAttribute(new Float32Array(data.normals), 3));
-          geometry.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(data.uvs), 2));
-          geometry.setIndex(data.indices);
-
-          const mesh = new THREE.Mesh(geometry, material);
-          mesh.position.set(chunkX * chunkSize, 0, chunkZ * chunkSize);
-          mesh.castShadow = true;
-          mesh.receiveShadow = true;
-          scene.add(mesh);
-          return mesh;
-        };
-
-        const solidMesh = chunk.solid.positions.length > 0
-          ? createMesh(chunk.solid, atlasMaterial)
-          : null;
-        const transparentMesh = chunk.transparent.positions.length > 0
-          ? createMesh(chunk.transparent, transparentAtlasMaterial)
-          : null;
-
-        chunks.set(key, { solidMesh, transparentMesh });
-      }
-
         // --- Game Loop ---
         const clock = new THREE.Clock();
         let lastPlayerChunkX = Infinity, lastPlayerChunkZ = Infinity;
