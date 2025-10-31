@@ -459,14 +459,26 @@
         });
 
 
-        function updateChunkMesh(chunkX, chunkZ){
-            const key = getChunkKey(chunkX, chunkZ);
-            const chunkData = chunks.get(key);
-            if (!chunkData) return;
-            if (chunkData.solidMesh) { scene.remove(chunkData.solidMesh); chunkData.solidMesh.geometry.dispose(); }
-            if (chunkData.transparentMesh) { scene.remove(chunkData.transparentMesh); chunkData.transparentMesh.geometry.dispose(); }
-            generateChunkMesh(chunkX, chunkZ);
-        }
+        function updateChunkMesh(chunkX, chunkZ) {
+          const key = getChunkKey(chunkX, chunkZ);
+          const chunkData = chunks.get(key) || {};
+
+          // Remove old meshes if they exist
+          if (chunkData.solidMesh) {
+            scene.remove(chunkData.solidMesh);
+            chunkData.solidMesh.geometry.dispose();
+          }
+          if (chunkData.transparentMesh) {
+            scene.remove(chunkData.transparentMesh);
+            chunkData.transparentMesh.geometry.dispose();
+          }
+
+  // Reset the entry so we don’t carry stale references
+  chunks.set(key, {});
+
+  // Rebuild the mesh from current world data
+  generateChunkMesh(chunkX, chunkZ);
+}
 
         // --- Game Loop ---
         const clock = new THREE.Clock();
@@ -687,18 +699,28 @@
                                     const intersection = player.boundingBox.clone().intersect(blockBox);
                                     const depth = new THREE.Vector3(); intersection.getSize(depth);
                                     if (axis === 'y') {
-                                        if (player.velocity.y <= 0) {
-                                          player.onGround = true;
-                                          player.velocity.y = 0;
-                                         // Snap just above the block, not by full depth
-                                         camera.position.y = blockBox.max.y + player.height;}
-                                        else if (player.velocity.y > 0) { player.velocity.y = 0; camera.position.y -= depth.y; }
+                                      if (player.velocity.y <= 0) {
+                                        // Falling or standing on a block
+                                        player.onGround = true;
+                                        player.velocity.y = 0;
+
+                                        // Snap player so their feet rest exactly on the block top
+                                        const blockTop = blockBox.max.y;
+                                        camera.position.y = blockTop + player.height;
+                                      } else if (player.velocity.y > 0) {
+                                        // Jumping up and hitting a ceiling
+                                        player.velocity.y = 0;
+
+                                        // Snap player just below the block bottom
+                                        const blockBottom = blockBox.min.y;
+                                        camera.position.y = blockBottom;
+                                      }
                                     } else if (axis === 'x') {
-                                        if (camera.position.x > x) camera.position.x += depth.x; else camera.position.x -= depth.x;
-                                        player.velocity.x = 0;
+                                      if (camera.position.x > x) camera.position.x += depth.x; else camera.position.x -= depth.x;
+                                      player.velocity.x = 0;
                                     } else if (axis === 'z') {
-                                        if (camera.position.z > z) camera.position.z += depth.z; else camera.position.z -= depth.z;
-                                        player.velocity.z = 0;
+                                      if (camera.position.z > z) camera.position.z += depth.z; else camera.position.z -= depth.z;
+                                      player.velocity.z = 0;
                                     }
                                 }
                             }
@@ -708,7 +730,6 @@
             };
 
             };
-
         fullCodeImplementations();
         player.respawn = new THREE.Vector3(0, 80, 0);
         window.addEventListener('resize', () => { camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); });
