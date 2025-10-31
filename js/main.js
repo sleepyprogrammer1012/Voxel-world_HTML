@@ -196,62 +196,7 @@
 
         const raycaster = new THREE.Raycaster();
 
-        // === Chunk Mesh Generation ===
-        function generateChunkMesh(chunkX, chunkZ) {
-          const key = getChunkKey(chunkX, chunkZ);
-          const chunk = { solid: { positions: [], normals: [], uvs: [], indices: [] }, transparent: { positions: [], normals: [], uvs: [], indices: [] } };
-
-          for (let y = 0; y < worldHeight; y++) {
-            for (let z = 0; z < chunkSize; z++) {
-              for (let x = 0; x < chunkSize; x++) {
-                const worldX = chunkX * chunkSize + x;
-                const worldZ = chunkZ * chunkSize + z;
-                const blockKey = getBlockKey(worldX, y, worldZ);
-                const blockType = world.get(blockKey);
-                if (blockType) {
-                  const { transparent } = blockTypes[blockType];
-                  const meshData = transparent ? chunk.transparent : chunk.solid;
-                  for (const { dir, corners, uvRow } of faces) {
-                    const neighborKey = getBlockKey(worldX + dir[0], y + dir[1], worldZ + dir[2]);
-                    const neighborType = world.get(neighborKey);
-                    const neighborIsTransparent = neighborType && blockTypes[neighborType].transparent;
-                    if (!neighborType || (neighborIsTransparent && blockType !== 'glass')) {
-                      const ndx = meshData.positions.length / 3;
-                      for (const { pos, uv } of corners) {
-                        meshData.positions.push(pos[0] + x, pos[1] + y, pos[2] + z);
-                        meshData.normals.push(...dir);
-                        const blockUVs = blockTypes[blockType].uv;
-                        const uvData = blockUVs.all || blockUVs[uvRow];
-                        meshData.uvs.push((uvData[0] + uv[0]) * tileUvWidth, 1 - (uvData[1] + uv[1]) * tileUvWidth);
-                      }
-                      meshData.indices.push(ndx, ndx + 1, ndx + 2, ndx + 2, ndx + 1, ndx + 3);
-                    }
-                  }
-                }
-              }
-            }
-          }
-
-          const createMesh = (data, material) => {
-            const geometry = new THREE.BufferGeometry();
-            geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(data.positions), 3));
-            geometry.setAttribute('normal', new THREE.BufferAttribute(new Float32Array(data.normals), 3));
-            geometry.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(data.uvs), 2));
-            geometry.setIndex(data.indices);
-            const mesh = new THREE.Mesh(geometry, material);
-            mesh.position.set(chunkX * chunkSize, 0, chunkZ * chunkSize);
-            mesh.castShadow = true;
-            mesh.receiveShadow = true;
-            scene.add(mesh);
-            return mesh;
-          };
-
-          if (chunk.solid.positions.length > 0)
-            chunks.set(key, { ...chunks.get(key), solidMesh: createMesh(chunk.solid, atlasMaterial) });
-          if (chunk.transparent.positions.length > 0)
-            chunks.set(key, { ...chunks.get(key), transparentMesh: createMesh(chunk.transparent, transparentAtlasMaterial) });
-        }
-
+        
         // === Worker Setup ===
         const chunkWorker = new Worker("./js/chunkWorker.js");
         chunkWorker.onmessage = (e) => {
@@ -454,7 +399,7 @@
                 if (pos.z % chunkSize === chunkSize - 1) chunksToUpdate.add(getChunkKey(mainChunkX, mainChunkZ + 1));
                 chunksToUpdate.forEach(key => {
                     const [cx, cz] = decodeChunkKey(Number(key));
-                    updateChunkMesh(cx, cz);
+                    generateChunkMesh(cx, cz);
                 });
             }
         });
