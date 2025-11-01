@@ -563,9 +563,11 @@
         function updateChunks() {
           const playerChunkX = Math.floor(camera.position.x / chunkSize);
           const playerChunkZ = Math.floor(camera.position.z / chunkSize);
-
-          for (let x = -renderDistance; x <= renderDistance; x++) {
-            for (let z = -renderDistance; z <= renderDistance; z++) {
+          const loadDistance = renderDistance + 1;
+          const unloadDistance = renderDistance + 2;
+          
+          for (let x = -loadDistance; x <= loadDistance; x++) {
+            for (let z = -loadDistance; z <= loadDistance; z++) {
               const cx = playerChunkX + x;
               const cz = playerChunkZ + z;
               const key = getChunkKey(cx, cz);
@@ -582,13 +584,11 @@
           
           // Clean up chunks that are too far away
           chunks.forEach((data, key) => {
-            // ✅ decode the numeric key into chunk coordinates
-            const [cx, cz] = decodeChunkKey(key);
-
+            const [cx, cz] = decodeChunkKey(Number(key));
             const dx = Math.abs(cx - playerChunkX);
             const dz = Math.abs(cz - playerChunkZ);
 
-            if (dx > renderDistance + 1 || dz > renderDistance + 1) {
+            if (dx > unloadDistance || dz > unloadDistance) {
               if (data.solidMesh) {
                 scene.remove(data.solidMesh);
                 data.solidMesh.geometry.dispose();
