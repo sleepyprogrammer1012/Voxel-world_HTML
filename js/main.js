@@ -199,13 +199,33 @@
         
         // === Worker Setup ===
         const chunkWorker = new Worker("./js/chunkWorker.js");
+
         chunkWorker.onmessage = (e) => {
           const { type, chunkX, chunkZ, blocks } = e.data;
           if (type === "chunkGenerated") {
+            // Store block data for collisions/logic
             Object.entries(blocks).forEach(([key, value]) => {
               world.set(Number(key), value);
             });
-            generateChunkMesh(chunkX, chunkZ);
+
+            // Build the meshes for this chunk
+            const { solidMesh, transparentMesh } = generateChunkMesh(chunkX, chunkZ);
+
+            const key = getChunkKey(chunkX, chunkZ);
+
+            // Clean up any old meshes if they exist
+            if (chunks.has(key)) {
+              const old = chunks.get(key);
+              if (old.solidMesh) scene.remove(old.solidMesh);
+              if (old.transparentMesh) scene.remove(old.transparentMesh);
+            }
+
+            // Add new meshes to the scene
+            if (solidMesh) scene.add(solidMesh);
+            if (transparentMesh) scene.add(transparentMesh);
+
+            // Update chunks map so cleanup logic works later
+            chunks.set(key, { solidMesh, transparentMesh });
           }
         };
 
@@ -218,7 +238,6 @@
             worldHeight
           });
         }
-
         // === Controlled Chunk Loading ===
         const playerChunkX = 0;
         const playerChunkZ = 0;
