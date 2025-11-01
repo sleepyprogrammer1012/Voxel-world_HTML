@@ -536,6 +536,7 @@
           : null;
 
         chunks.set(key, { solidMesh, transparentMesh });
+        return { solidMesh, transparentMesh };
       }
 
         // --- Game Loop ---
