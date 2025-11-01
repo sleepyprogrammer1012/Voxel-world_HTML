@@ -563,8 +563,8 @@
         function updateChunks() {
           const playerChunkX = Math.floor(camera.position.x / chunkSize);
           const playerChunkZ = Math.floor(camera.position.z / chunkSize);
-          const loadDistance = renderDistance + 1;
-          const unloadDistance = renderDistance + 2;
+          const loadDistance = renderDistance + 2;
+          const unloadDistance = renderDistance + 4;
           
           for (let x = -loadDistance; x <= loadDistance; x++) {
             for (let z = -loadDistance; z <= loadDistance; z++) {
